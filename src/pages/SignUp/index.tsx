@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/core';
 import React from 'react';
 import { Image, KeyboardAvoidingView, Platform } from 'react-native';
 import logoImg from '../../assets/logo.png';
@@ -12,6 +13,8 @@ import {
 } from './styles';
 
 const SignUp: React.FC = () => {
+  const navigation = useNavigation();
+
   return (
     <>
       <KeyboardAvoidingView
@@ -37,7 +40,7 @@ const SignUp: React.FC = () => {
 
       <BackToLoginButton
         onPress={() => {
-          console.log('Criar conta');
+          navigation.goBack();
         }}>
         <Icon name="arrow-left" color="#F4EDE8" />
 
