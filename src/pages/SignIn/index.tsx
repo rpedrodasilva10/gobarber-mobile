@@ -1,4 +1,7 @@
-import React from 'react';
+import { useNavigation } from '@react-navigation/core';
+import { FormHandles } from '@unform/core';
+import { Form } from '@unform/mobile';
+import React, { useCallback, useRef } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -20,6 +23,13 @@ import {
 } from './styles';
 
 const SignIn: React.FC = () => {
+  const formRef = useRef<FormHandles>(null);
+  const navigation = useNavigation();
+
+  const handleSubmit = useCallback((data: object) => {
+    console.log('Dados: ', data);
+  }, []);
+
   return (
     <>
       <KeyboardAvoidingView
@@ -36,11 +46,18 @@ const SignIn: React.FC = () => {
               <Title>Faça seu logon</Title>
             </View>
 
-            <Input name="email" icon="mail" placeholder="E-mail" />
+            <Form ref={formRef} onSubmit={handleSubmit}>
+              <Input name="email" icon="mail" placeholder="E-mail" />
 
-            <Input name="password" icon="lock" placeholder="Senha" />
+              <Input name="password" icon="lock" placeholder="Senha" />
+            </Form>
 
-            <Button onPress={() => console.log('Deu')}>Entrar</Button>
+            <Button
+              onPress={() => {
+                formRef.current?.submitForm();
+              }}>
+              Entrar
+            </Button>
 
             <ForgotPassword onPress={() => {}}>
               <ForgotPasswordText>Esqueci minha senha</ForgotPasswordText>
@@ -49,7 +66,7 @@ const SignIn: React.FC = () => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <CreateAccountButton onPress={() => {}}>
+      <CreateAccountButton onPress={() => navigation.navigate('SignUp')}>
         <Icon name="log-in" size={20} color="#ff9000" />
 
         <CreateAccountButtonText>Criar uma conta</CreateAccountButtonText>

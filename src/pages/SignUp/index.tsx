@@ -1,5 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import { FormHandles } from '@unform/core';
+import { Form } from '@unform/mobile';
+import React, { useCallback, useRef } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -15,6 +17,11 @@ import { BackToSignIn, BackToSignInText, Container, Title } from './styles';
 
 const SignUp: React.FC = () => {
   const navigation = useNavigation();
+  const formRef = useRef<FormHandles>(null);
+
+  const handleSignUpSubmit = useCallback((data: object) => {
+    console.log(data);
+  }, []);
 
   return (
     <>
@@ -32,13 +39,16 @@ const SignUp: React.FC = () => {
               <Title>Crie sua conta</Title>
             </View>
 
-            <Input name="name" icon="user" placeholder="Nome" />
+            <Form ref={formRef} onSubmit={handleSignUpSubmit}>
+              <Input name="name" icon="user" placeholder="Nome" />
 
-            <Input name="email" icon="mail" placeholder="E-mail" />
+              <Input name="email" icon="mail" placeholder="E-mail" />
 
-            <Input name="password" icon="lock" placeholder="Senha" />
-
-            <Button onPress={() => console.log('Deu')}>Entrar</Button>
+              <Input name="password" icon="lock" placeholder="Senha" />
+            </Form>
+            <Button onPress={() => formRef.current?.submitForm()}>
+              Entrar
+            </Button>
           </Container>
         </ScrollView>
       </KeyboardAvoidingView>
