@@ -16,6 +16,7 @@ import * as Yup from 'yup';
 import logoImg from '../../assets/logo.png';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import { useAuth } from '../../hooks/auth';
 import getValidationErrors from '../../utils/getValidationErrors';
 import {
   Container,
@@ -31,51 +32,46 @@ interface SignInFormData {
 }
 
 const SignIn: React.FC = () => {
+  const { signIn, user } = useAuth();
+
   const formRef = useRef<FormHandles>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
   const navigation = useNavigation();
+  console.log('User: ', user);
+  const handleSignIn = useCallback(
+    async (data: SignInFormData) => {
+      formRef.current?.setErrors({});
 
-  const handleSignIn = useCallback(async (data: SignInFormData) => {
-    formRef.current?.setErrors({});
+      try {
+        const schema = Yup.object().shape({
+          email: Yup.string()
+            .email('Por favor, informe um e-mail válido')
+            .required('Email é obrigatório'),
+          password: Yup.string().required('Senha é obrigatória'),
+        });
 
-    try {
-      const schema = Yup.object().shape({
-        email: Yup.string()
-          .email('Por favor, informe um e-mail válido')
-          .required('Email é obrigatório'),
-        password: Yup.string().required('Senha é obrigatória'),
-      });
+        await schema.validate(data, {
+          abortEarly: false,
+        });
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
+        await signIn({ email: data.email, password: data.password });
 
-      // await signIn({ email: data.email, password: data.password });
+        Alert.alert('Login realizado com sucesso', 'Carregando dashboard');
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(err);
 
-      // addToast({
-      //   type: 'info',
-      //   title: 'Login realizado',
-      //   description: 'Seja bem vindo ao Go Barber',
-      // });
-    } catch (err) {
-      if (err instanceof Yup.ValidationError) {
-        const errors = getValidationErrors(err);
+          formRef.current?.setErrors(errors);
 
-        formRef.current?.setErrors(errors);
+          return;
+        }
 
-        return;
+        Alert.alert('Erro na autenticação', 'Erro ao tentar fazer login');
       }
-
-      Alert.alert('Erro na autenticação', 'Erro ao tentar fazer login');
-
-      // addToast({
-      //   type: 'error',
-      //   title: 'Erro ao logar',
-      //   description: 'Erro ao tentar fazer login',
-      // });
-    }
-  }, []);
+    },
+    [signIn],
+  );
 
   return (
     <>
