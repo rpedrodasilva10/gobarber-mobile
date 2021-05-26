@@ -3,6 +3,7 @@ import { FormHandles } from '@unform/core';
 import { Form } from '@unform/mobile';
 import React, { useCallback, useRef } from 'react';
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -11,11 +12,18 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import * as Yup from 'yup';
 import logoImg from '../../assets/logo.png';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import getValidationErrors from '../../utils/getValidationErrors';
 import { BackToSignIn, BackToSignInText, Container, Title } from './styles';
 
+interface CreateUserPayload {
+  email: string;
+  name: string;
+  password: string;
+}
 const SignUp: React.FC = () => {
   const navigation = useNavigation();
   const formRef = useRef<FormHandles>(null);
@@ -24,8 +32,55 @@ const SignUp: React.FC = () => {
   const passwordInputRef = useRef<TextInput>(null);
   const emailInputRef = useRef<TextInput>(null);
 
-  const handleSignUpSubmit = useCallback((data: object) => {
-    console.log(data);
+  const handleSignUp = useCallback(async (data: CreateUserPayload) => {
+    formRef.current?.setErrors({});
+
+    try {
+      const schema = Yup.object().shape({
+        name: Yup.string().required('Nome é obrigatório'),
+        email: Yup.string()
+          .email('Por favor, informe um e-mail válido')
+          .required('Email é obrigatório'),
+        password: Yup.string().min(6, 'Mínimo de 6 caractéres'),
+      });
+
+      await schema.validate(data, {
+        abortEarly: false,
+      });
+
+      const { email, name, password } = data;
+
+      // const response = await api.post('/users', {
+      //   name,
+      //   email,
+      //   password,
+      // });
+
+      // addToast({
+      //   type: 'success',
+      //   title: 'Cadastro realizado',
+      //   description: 'Cadastro realizado com sucesso.',
+      // });
+    } catch (err) {
+      if (err instanceof Yup.ValidationError) {
+        const errors = getValidationErrors(err);
+
+        formRef.current?.setErrors(errors);
+
+        return;
+      }
+
+      Alert.alert(
+        'Erro ao criar cadastro',
+        'Erro ao criar cadastro, cheque as informações e tente novamente',
+      );
+
+      // addToast({
+      //   type: 'error',
+      //   title: 'Erro ao criar cadastro',
+      //   description: 'Tente novamente mais tarde.',
+      // });
+    }
   }, []);
 
   return (
@@ -44,7 +99,7 @@ const SignUp: React.FC = () => {
               <Title>Crie sua conta</Title>
             </View>
 
-            <Form ref={formRef} onSubmit={handleSignUpSubmit}>
+            <Form ref={formRef} onSubmit={handleSignUp}>
               <Input
                 autoCapitalize="words"
                 name="name"
