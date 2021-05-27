@@ -20,6 +20,7 @@ interface AuthData {
 
 interface AuthContextData {
   user: object;
+  loading: boolean;
   signIn({ email, password }: SignInCredentials): Promise<void>;
   signOut(): void;
 }
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 const AuthProvider: React.FC = ({ children }) => {
   const [authData, setAuthData] = useState<AuthData>({} as AuthData);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStorage(): Promise<void> {
@@ -34,6 +36,8 @@ const AuthProvider: React.FC = ({ children }) => {
       const user = await AsyncStorage.getItem('@Gobarber:user');
 
       if (token && user) setAuthData({ token, user: JSON.parse(user) });
+
+      setLoading(false);
     }
 
     loadStorage();
@@ -58,7 +62,8 @@ const AuthProvider: React.FC = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user: authData.user, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ user: authData.user, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
